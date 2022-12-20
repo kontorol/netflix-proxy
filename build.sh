@@ -130,7 +130,8 @@ fi
 
 IPV6=0
 if cat /proc/net/if_inet6 | grep -v lo | grep -v fe80 > /dev/null\
-  && $(which curl) mgmt.unzoner.com --fail --silent -6 > /dev/null; then
+  && $(which curl) mgmt.unzoner.com --fail --silent -6 > /dev/null\
+  && [[ "${SEXTIP}" == '0' ]]; then
     IPV6=1
     IPADDR6=$(get_ipaddr6)
     EXTIP6=$(get_ext_ipaddr 6)
@@ -156,7 +157,7 @@ if [[ "${IPV6}" == '1' ]]; then
     fi
 fi
 if [[ "${SEXTIP}" == '1' ]]; then
-  IS_CLIENT_IPV6=0
+  IS_CLIENT_IPV6=1
 fi
 # diagnostics info
 debug="$0: build=${DOCKER_BUILD} client=${CLIENTIP} is_client_ipv4=${IS_CLIENT_IPV4} ipaddr=${IPADDR} extip=${EXTIP}"

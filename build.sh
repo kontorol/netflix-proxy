@@ -39,6 +39,9 @@ while getopts "b:c:" o; do
         c)
             c=${OPTARG}
             ;;
+        e)
+            e=${OPTARG}
+            ;;
         *)
             usage
             ;;
@@ -48,6 +51,7 @@ shift $((OPTIND-1))
 
 if [ ${b} ]; then DOCKER_BUILD=${b}; fi
 if [ ${c} ]; then CLIENTIP=${c}; fi
+if [ ${e} ]; then EXTIP=${e}; fi
 
 log_action_begin_msg "checking OS compatibility"
 if [[ $(cat /etc/os-release | grep '^ID=') =~ ubuntu ]]\
@@ -111,7 +115,11 @@ IFACE=$(get_iface 4)
 
 # obtain IP address of the Internet facing interface
 IPADDR=$(get_ipaddr)
-EXTIP=$(get_ext_ipaddr 4)
+# EXTIP=$(get_ext_ipaddr 4)
+
+if ! [ ${EXTIP} ]; then
+    EXTIP=$(get_ext_ipaddr 4)
+fi
 
 IPV6=0
 if cat /proc/net/if_inet6 | grep -v lo | grep -v fe80 > /dev/null\
@@ -175,9 +183,9 @@ else
 fi
 
 log_action_begin_msg "adding IPv4 iptables rules"
-sudo iptables -t nat -A PREROUTING -i ${IFACE} -p tcp --dport 80 -j REDIRECT --to-port 8080\
-  && sudo iptables -t nat -A PREROUTING -i ${IFACE} -p tcp --dport 443 -j REDIRECT --to-port 8080\
-  && sudo iptables -t nat -A PREROUTING -i ${IFACE} -p udp --dport 53 -j REDIRECT --to-port 5353\
+sudo iptables -t nat -A PREROUTING -i ${IFACE} -p udp --dport 53 -j REDIRECT --to-port 5353\
+  # && sudo iptables -t nat -A PREROUTING -i ${IFACE} -p tcp --dport 443 -j REDIRECT --to-port 8080\
+  # && sudo iptables -t nat -A PREROUTING -i ${IFACE} -p tcp --dport 80 -j REDIRECT --to-port 8080\
   && sudo iptables -t nat -A POSTROUTING -o ${IFACE} -j MASQUERADE\
   && sudo iptables -A INPUT -p icmp -j ACCEPT\
   && sudo iptables -A INPUT -i lo -j ACCEPT\
@@ -192,9 +200,9 @@ sudo iptables -t nat -A PREROUTING -i ${IFACE} -p tcp --dport 80 -j REDIRECT --t
 log_action_end_msg $?
 
 log_action_begin_msg "adding IPv6 iptables rules"
-sudo ip6tables -t nat -A PREROUTING -i ${IFACE} -p tcp --dport 80 -j REDIRECT --to-port 8080\
-  && sudo ip6tables -t nat -A PREROUTING -i ${IFACE} -p tcp --dport 443 -j REDIRECT --to-port 8080\
-  && sudo ip6tables -t nat -A PREROUTING -i ${IFACE} -p udp --dport 53 -j REDIRECT --to-port 5353\
+sudo ip6tables -t nat -A PREROUTING -i ${IFACE} -p udp --dport 53 -j REDIRECT --to-port 5353\
+  # && sudo ip6tables -t nat -A PREROUTING -i ${IFACE} -p tcp --dport 443 -j REDIRECT --to-port 8080\
+  # && sudo ip6tables -t nat -A PREROUTING -i ${IFACE} -p tcp --dport 80 -j REDIRECT --to-port 8080\
   && sudo iptables -t nat -A POSTROUTING -o ${IFACE} -j MASQUERADE\
   && sudo ip6tables -A INPUT -p ipv6-icmp -j ACCEPT\
   && sudo ip6tables -A INPUT -i lo -j ACCEPT\

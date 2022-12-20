@@ -46,6 +46,7 @@ while getopts "b:c:e:s:" o; do
             ;;
         s)
             s=${OPTARG}
+            ((s == 0|| s == 1)) || usage
             ;;
         *)
             usage
@@ -141,7 +142,7 @@ if ! [ ${CLIENTIP} ]; then
     CLIENTIP=$(get_client_ipaddr)
 fi
 
-if [ ${SEXTIP} ]; then
+if [[ "${SEXTIP}" == '1' ]]; then
     EXTIP=${CLIENTIP}
 fi
 
